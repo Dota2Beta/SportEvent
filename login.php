@@ -1,0 +1,64 @@
+<?php
+require __DIR__ . '/includes/db.php';
+require __DIR__ . '/includes/auth.php';
+
+if (isLoggedIn()) {
+    if (isAdmin()) {
+        header('Location: /admin/dashboard.php');
+    } else {
+        header('Location: /dashboard.php');
+    }
+    exit;
+}
+
+$error = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    if ($user && password_verify($password, $user['password_hash'])) {
+        $_SESSION['user'] = [
+            'id' => (int)$user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role' => $user['role'],
+        ];
+
+        if ($user['role'] === 'admin') {
+            header('Location: /admin/dashboard.php');
+        } else {
+            header('Location: /dashboard.php');
+        }
+        exit;
+    }
+
+    $error = 'Неверный email или пароль.';
+}
+
+require __DIR__ . '/includes/header.php';
+?>
+<h1 class="h3 mb-3">Вход в систему</h1>
+
+<?php if (isset($_GET['registered'])): ?>
+    <div class="alert alert-success">Регистрация прошла успешно. Теперь войдите в аккаунт.</div>
+<?php endif; ?>
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
+
+<form method="post" class="card p-3 shadow-sm">
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Пароль</label>
+        <input type="password" name="password" class="form-control" required>
+    </div>
+    <button class="btn btn-primary">Войти</button>
+</form>
+<?php require __DIR__ . '/includes/footer.php'; ?>
