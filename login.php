@@ -21,22 +21,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
-        $_SESSION['user'] = [
-            'id' => (int)$user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-        ];
-
-        if ($user['role'] === 'admin') {
-            redirectTo('admin/dashboard.php');
+        if ((int)($user['is_banned'] ?? 0) === 1) {
+            $error = 'Ваш аккаунт заблокирован администратором.';
         } else {
-            redirectTo('dashboard.php');
+            $_SESSION['user'] = [
+                'id' => (int)$user['id'],
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'role' => $user['role'],
+            ];
+
+            if ($user['role'] === 'admin') {
+                redirectTo('admin/dashboard.php');
+            } else {
+                redirectTo('dashboard.php');
+            }
+            exit;
         }
-        exit;
     }
 
-    $error = 'Неверный email или пароль.';
+    if (!$error) {
+        $error = 'Неверный email или пароль.';
+    }
 }
 
 require __DIR__ . '/includes/header.php';

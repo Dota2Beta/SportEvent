@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+    is_banned TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -30,8 +31,6 @@ CREATE TABLE IF NOT EXISTS registrations (
     CONSTRAINT fk_reg_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE IF NOT EXISTS feedback_messages (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     client_name VARCHAR(120) NOT NULL,
@@ -45,16 +44,18 @@ CREATE TABLE IF NOT EXISTS reviews (
     user_id INT UNSIGNED NULL,
     author_name VARCHAR(120) NOT NULL,
     content TEXT NOT NULL,
+    rating TINYINT UNSIGNED NOT NULL DEFAULT 5,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-INSERT INTO users (name, email, password_hash, role)
-VALUES ('Admin', 'admin@sportevent.local', '$2y$12$zcAfGE515Pd2PQ7JU4u8GOJ9HBmupqGzZCKjBvvqx8GhlpaZMHVhu', 'admin')
+INSERT INTO users (name, email, password_hash, role, is_banned)
+VALUES ('Admin', 'admin@sportevent.local', '$2y$12$zcAfGE515Pd2PQ7JU4u8GOJ9HBmupqGzZCKjBvvqx8GhlpaZMHVhu', 'admin', 0)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     password_hash = VALUES(password_hash),
-    role = VALUES(role);
+    role = VALUES(role),
+    is_banned = 0;
 
 INSERT INTO events (title, description, event_date, location, capacity)
 VALUES
@@ -63,8 +64,8 @@ VALUES
 ('Открытая тренировка по волейболу', 'Тренировка с тренером и отбор в сборную.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Спортзал А', 40)
 ON DUPLICATE KEY UPDATE title = VALUES(title);
 
-INSERT INTO reviews (user_id, author_name, content)
+INSERT INTO reviews (user_id, author_name, content, rating)
 VALUES
-(NULL, 'Алексей П.', 'Очень удобный сайт: быстро нашел турнир и записался за пару минут.'),
-(NULL, 'Марина К.', 'Понравилось, что в личном кабинете сразу видно все мои регистрации.'),
-(NULL, 'Илья С.', 'Админ-панель простая, но для учебного проекта этого более чем достаточно.');
+(NULL, 'Алексей П.', 'Очень удобный сайт: быстро нашел турнир и записался за пару минут.', 5),
+(NULL, 'Марина К.', 'Понравилось, что в личном кабинете сразу видно все мои регистрации.', 4),
+(NULL, 'Илья С.', 'Админ-панель простая, но для учебного проекта этого более чем достаточно.', 5);

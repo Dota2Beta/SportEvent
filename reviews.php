@@ -7,6 +7,7 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS reviews (
     user_id INT UNSIGNED NULL,
     author_name VARCHAR(120) NOT NULL,
     content TEXT NOT NULL,
+    rating TINYINT UNSIGNED NOT NULL DEFAULT 5,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 )');
@@ -20,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_review'])) {
         $errors[] = 'Оставлять отзывы могут только авторизованные пользователи.';
     } else {
         $content = trim($_POST['content'] ?? '');
+        $rating = (int)($_POST['rating'] ?? 0);
 
         if ($content === '') {
             $errors[] = 'Введите текст отзыва.';
@@ -29,15 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_review'])) {
             $errors[] = 'Отзыв слишком длинный. Максимум 1000 символов.';
         }
 
+        if ($rating < 1 || $rating > 5) {
+            $errors[] = 'Оценка должна быть от 1 до 5.';
+        }
+
         if (!$errors) {
-            $stmt = $pdo->prepare('INSERT INTO reviews (user_id, author_name, content) VALUES (?, ?, ?)');
-            $stmt->execute([(int)$user['id'], $user['name'], $content]);
+            $stmt = $pdo->prepare('INSERT INTO reviews (user_id, author_name, content, rating) VALUES (?, ?, ?, ?)');
+            $stmt->execute([(int)$user['id'], $user['name'], $content, $rating]);
             $success = 'Спасибо! Ваш отзыв добавлен.';
+            $_POST = [];
         }
     }
 }
 
-$reviews = $pdo->query('SELECT id, author_name, content, created_at FROM reviews ORDER BY created_at DESC LIMIT 50')->fetchAll();
+$reviews = $pdo->query('SELECT id, author_name, content, rating, created_at FROM reviews ORDER BY created_at DESC LIMIT 50')->fetchAll();
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -59,6 +66,14 @@ require __DIR__ . '/includes/header.php';
             <form method="post">
                 <input type="hidden" name="add_review" value="1">
                 <div class="mb-3">
+                    <label class="form-label">Оценка</label>
+                    <select name="rating" class="form-select" required>
+                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                            <option value="<?= $i ?>" <?= (int)($_POST['rating'] ?? 5) === $i ? 'selected' : '' ?>><?= $i ?> / 5</option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label class="form-label">Ваш отзыв</label>
                     <textarea name="content" rows="4" class="form-control" maxlength="1000" required><?= htmlspecialchars($_POST['content'] ?? '') ?></textarea>
                 </div>
@@ -78,6 +93,9 @@ require __DIR__ . '/includes/header.php';
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
+                        <div class="mb-2 text-warning">
+                            <?= str_repeat('★', (int)$review['rating']) . str_repeat('☆', 5 - (int)$review['rating']) ?>
+                        </div>
                         <p class="mb-2"><?= nl2br(htmlspecialchars($review['content'])) ?></p>
                         <div class="small text-muted">
                             <?= htmlspecialchars($review['author_name']) ?> · <?= date('d.m.Y', strtotime($review['created_at'])) ?>
