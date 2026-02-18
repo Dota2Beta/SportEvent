@@ -30,9 +30,20 @@ CREATE TABLE IF NOT EXISTS registrations (
     CONSTRAINT fk_reg_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(120) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 INSERT INTO users (name, email, password_hash, role)
-VALUES ('Admin', 'admin@sportevent.local', '$2y$10$QROlRZ2cmPj59mCXmEyY1.6XnPv9x.2UN1Y.6nNso0B8v3X6flAPW', 'admin')
-ON DUPLICATE KEY UPDATE email = email;
+VALUES ('Admin', 'admin@sportevent.local', '$2y$12$zcAfGE515Pd2PQ7JU4u8GOJ9HBmupqGzZCKjBvvqx8GhlpaZMHVhu', 'admin')
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    password_hash = VALUES(password_hash),
+    role = VALUES(role);
 
 INSERT INTO events (title, description, event_date, location, capacity)
 VALUES
@@ -40,3 +51,9 @@ VALUES
 ('Турнир по мини-футболу', 'Командный турнир между факультетами.', DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'Стадион №2', 120),
 ('Открытая тренировка по волейболу', 'Тренировка с тренером и отбор в сборную.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Спортзал А', 40)
 ON DUPLICATE KEY UPDATE title = VALUES(title);
+
+INSERT INTO reviews (author_name, content)
+VALUES
+('Алексей П.', 'Очень удобный сайт: быстро нашел турнир и записался за пару минут.'),
+('Марина К.', 'Понравилось, что в личном кабинете сразу видно все мои регистрации.'),
+('Илья С.', 'Админ-панель простая, но для учебного проекта этого более чем достаточно.');
