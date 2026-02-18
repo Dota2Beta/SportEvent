@@ -41,6 +41,16 @@ SET password_hash = '$2y$12$zcAfGE515Pd2PQ7JU4u8GOJ9HBmupqGzZCKjBvvqx8GhlpaZMHVh
 WHERE email = 'admin@sportevent.local';
 ```
 
+
+## Если появляется ошибка "Unknown column user_id"
+Это значит, что у вас старая версия таблицы `reviews`.
+Сейчас проект пытается обновить структуру автоматически при открытии любой страницы.
+Если нужно вручную, выполните:
+```sql
+ALTER TABLE reviews ADD COLUMN user_id INT UNSIGNED NULL;
+ALTER TABLE reviews ADD COLUMN rating TINYINT UNSIGNED NOT NULL DEFAULT 5;
+```
+
 ## Структура
 - `index.php` — главная страница.
 - `about.php` — страница «О нас» + форма обратной связи.
