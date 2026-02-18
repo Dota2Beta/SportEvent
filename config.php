@@ -5,5 +5,7 @@ return [
     'db_user' => 'root',
     'db_pass' => '',
     'db_charset' => 'utf8mb4',
-    'site_name' => 'SportEvent'
+    'site_name' => 'SportEvent',
+    // Если проект открывается в подпапке (например /SportEvent), укажите ее здесь.
+    'base_path' => ''
 ];

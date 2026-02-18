@@ -4,9 +4,9 @@ require __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
     if (isAdmin()) {
-        header('Location: /admin/dashboard.php');
+        redirectTo('admin/dashboard.php');
     } else {
-        header('Location: /dashboard.php');
+        redirectTo('dashboard.php');
     }
     exit;
 }
@@ -29,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
 
         if ($user['role'] === 'admin') {
-            header('Location: /admin/dashboard.php');
+            redirectTo('admin/dashboard.php');
         } else {
-            header('Location: /dashboard.php');
+            redirectTo('dashboard.php');
         }
         exit;
     }

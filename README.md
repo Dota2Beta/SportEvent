@@ -20,7 +20,8 @@
    mysql -u root -p < database.sql
    ```
 3. Проверьте `config.php` и укажите свои параметры MySQL.
-4. Откройте сайт в браузере.
+4. Если сайт открыт в подпапке (например `http://localhost/SportEvent`), укажите `base_path` в `config.php` (например `'/SportEvent'`).
+5. Откройте сайт в браузере.
 
 ## Тестовый админ
 - Email: `admin@sportevent.local`

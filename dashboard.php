@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
         $insert->execute([$user['id'], $eventId]);
     }
 
-    header('Location: /dashboard.php');
+    redirectTo('dashboard.php');
     exit;
 }
 

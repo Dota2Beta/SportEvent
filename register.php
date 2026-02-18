@@ -3,7 +3,7 @@ require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
-    header('Location: /dashboard.php');
+    redirectTo('dashboard.php');
     exit;
 }
 
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = $pdo->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, "user")');
             $stmt->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT)]);
-            header('Location: /login.php?registered=1');
+            header('Location: ' . siteUrl('login.php') . '?registered=1');
             exit;
         }
     }

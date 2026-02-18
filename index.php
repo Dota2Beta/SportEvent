@@ -14,7 +14,7 @@ $events = $stmt->fetchAll();
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="h4 mb-0">Ближайшие мероприятия</h2>
     <?php if (!isLoggedIn()): ?>
-        <a href="/register.php" class="btn btn-primary btn-sm">Присоединиться</a>
+        <a href="<?= htmlspecialchars(siteUrl('register.php')) ?>" class="btn btn-primary btn-sm">Присоединиться</a>
     <?php endif; ?>
 </div>
 

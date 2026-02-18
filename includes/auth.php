@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/url.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -22,15 +24,13 @@ function isAdmin(): bool
 function requireLogin(): void
 {
     if (!isLoggedIn()) {
-        header('Location: /login.php');
-        exit;
+        redirectTo('login.php');
     }
 }
 
 function requireAdmin(): void
 {
     if (!isAdmin()) {
-        header('Location: /index.php');
-        exit;
+        redirectTo('index.php');
     }
 }

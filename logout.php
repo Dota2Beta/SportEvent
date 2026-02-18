@@ -4,5 +4,5 @@ require __DIR__ . '/includes/auth.php';
 $_SESSION = [];
 session_destroy();
 
-header('Location: /index.php');
+redirectTo('index.php');
 exit;
