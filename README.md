@@ -20,7 +20,7 @@
    mysql -u root -p < database.sql
    ```
 3. Проверьте `config.php` и укажите свои параметры MySQL.
-4. Если сайт открыт в подпапке (например `http://localhost/SportEvent`), укажите `base_path` в `config.php` (например `'/SportEvent'`).
+4. Если сайт открыт в подпапке (например `http://localhost/SportEvent`), ссылки теперь подхватывают путь автоматически. При необходимости можно явно указать `base_path` в `config.php` (например `'/SportEvent'`).
 5. Откройте сайт в браузере.
 
 ## Тестовый админ
