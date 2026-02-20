@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/captcha.php';
 
 if (isLoggedIn()) {
     if (isAdmin()) {
@@ -15,35 +16,42 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $captcha = trim($_POST['captcha'] ?? '');
 
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    if (!validateCaptcha($captcha)) {
+        $error = 'Неверно решена капча.';
+    } else {
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
 
-    if ($user && password_verify($password, $user['password_hash'])) {
-        if ((int)($user['is_banned'] ?? 0) === 1) {
-            $error = 'Ваш аккаунт заблокирован администратором.';
-        } else {
-            $_SESSION['user'] = [
-                'id' => (int)$user['id'],
-                'name' => $user['name'],
-                'email' => $user['email'],
-                'role' => $user['role'],
-            ];
-
-            if ($user['role'] === 'admin') {
-                redirectTo('admin/dashboard.php');
+        if ($user && password_verify($password, $user['password_hash'])) {
+            if ((int)($user['is_banned'] ?? 0) === 1) {
+                $error = 'Ваш аккаунт заблокирован администратором.';
             } else {
-                redirectTo('dashboard.php');
+                $_SESSION['user'] = [
+                    'id' => (int)$user['id'],
+                    'name' => $user['name'],
+                    'email' => $user['email'],
+                    'role' => $user['role'],
+                ];
+
+                if ($user['role'] === 'admin') {
+                    redirectTo('admin/dashboard.php');
+                } else {
+                    redirectTo('dashboard.php');
+                }
+                exit;
             }
-            exit;
+        }
+
+        if (!$error) {
+            $error = 'Неверный email или пароль.';
         }
     }
-
-    if (!$error) {
-        $error = 'Неверный email или пароль.';
-    }
 }
+
+$captchaQuestion = getCaptchaQuestion();
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -64,6 +72,10 @@ require __DIR__ . '/includes/header.php';
     <div class="mb-3">
         <label class="form-label">Пароль</label>
         <input type="password" name="password" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Капча: сколько будет <?= htmlspecialchars($captchaQuestion) ?> ?</label>
+        <input type="number" name="captcha" class="form-control" required>
     </div>
     <button class="btn btn-primary">Войти</button>
 </form>

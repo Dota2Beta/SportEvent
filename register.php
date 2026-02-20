@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/auth.php';
+require __DIR__ . '/includes/captcha.php';
 
 if (isLoggedIn()) {
     redirectTo('dashboard.php');
@@ -12,8 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $captcha = trim($_POST['captcha'] ?? '');
 
-    if ($name === '' || $email === '' || $password === '') {
+    if ($name === '' || $email === '' || $password === '' || $captcha === '') {
         $errors[] = 'Заполните все поля.';
     }
 
@@ -23,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (strlen($password) < 6) {
         $errors[] = 'Пароль должен быть не менее 6 символов.';
+    }
+
+    if (!validateCaptcha($captcha)) {
+        $errors[] = 'Неверно решена капча.';
     }
 
     if (!$errors) {
@@ -38,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$captchaQuestion = getCaptchaQuestion();
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -59,6 +67,10 @@ require __DIR__ . '/includes/header.php';
     <div class="mb-3">
         <label class="form-label">Пароль</label>
         <input type="password" name="password" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Капча: сколько будет <?= htmlspecialchars($captchaQuestion) ?> ?</label>
+        <input type="number" name="captcha" class="form-control" required>
     </div>
     <button class="btn btn-primary">Создать аккаунт</button>
 </form>

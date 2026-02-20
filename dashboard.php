@@ -35,11 +35,35 @@ $registeredIdsStmt = $pdo->prepare('SELECT event_id FROM registrations WHERE use
 $registeredIdsStmt->execute([$user['id']]);
 $registeredIds = array_map('intval', array_column($registeredIdsStmt->fetchAll(), 'event_id'));
 
+$userInfoStmt = $pdo->prepare('SELECT name, email, role, created_at, is_banned FROM users WHERE id = ? LIMIT 1');
+$userInfoStmt->execute([$user['id']]);
+$userInfo = $userInfoStmt->fetch();
+
+$totalRegistrationsStmt = $pdo->prepare('SELECT COUNT(*) FROM registrations WHERE user_id = ?');
+$totalRegistrationsStmt->execute([$user['id']]);
+$totalRegistrations = (int)$totalRegistrationsStmt->fetchColumn();
+
 require __DIR__ . '/includes/header.php';
 ?>
 
 <h1 class="h3 mb-3">Личный кабинет</h1>
 <p class="text-muted">Здесь можно записаться на мероприятие и отслеживать свои регистрации.</p>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">Информация о пользователе</div>
+    <div class="card-body">
+        <?php if ($userInfo): ?>
+            <div class="row g-3">
+                <div class="col-md-6"><strong>Имя:</strong> <?= htmlspecialchars($userInfo['name']) ?></div>
+                <div class="col-md-6"><strong>Email:</strong> <?= htmlspecialchars($userInfo['email']) ?></div>
+                <div class="col-md-6"><strong>Роль:</strong> <?= htmlspecialchars($userInfo['role']) ?></div>
+                <div class="col-md-6"><strong>Дата регистрации:</strong> <?= date('d.m.Y', strtotime($userInfo['created_at'])) ?></div>
+                <div class="col-md-6"><strong>Всего записей на мероприятия:</strong> <?= $totalRegistrations ?></div>
+                <div class="col-md-6"><strong>Статус аккаунта:</strong> <?= (int)$userInfo['is_banned'] === 1 ? 'Заблокирован' : 'Активен' ?></div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
 <div class="row g-4">
     <div class="col-lg-7">
