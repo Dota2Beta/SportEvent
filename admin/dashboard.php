@@ -15,6 +15,7 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS reviews (
 
 $success = null;
 $errors = [];
+$currentAdmin = currentUser();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['create_event'])) {
@@ -78,6 +79,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upd->execute([$newState === 1 ? 1 : 0, $userId]);
                 $success = $newState === 1 ? 'Пользователь заблокирован.' : 'Пользователь разблокирован.';
             }
+        }
+    }
+
+    if (isset($_POST['change_user_role'])) {
+        $userId = (int)($_POST['user_id'] ?? 0);
+        $newRole = $_POST['new_role'] ?? 'user';
+
+        if (!in_array($newRole, ['user', 'admin'], true)) {
+            $errors[] = 'Некорректная роль.';
+        } elseif ($userId <= 0) {
+            $errors[] = 'Пользователь не найден.';
+        } elseif ($currentAdmin && $userId === (int)$currentAdmin['id'] && $newRole !== 'admin') {
+            $errors[] = 'Нельзя понизить свою роль администратора.';
+        } else {
+            $stmt = $pdo->prepare('UPDATE users SET role = ? WHERE id = ?');
+            $stmt->execute([$newRole, $userId]);
+            $success = 'Роль пользователя обновлена.';
         }
     }
 }
@@ -207,7 +225,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card shadow-sm mb-4">
-    <div class="card-header">Зарегистрированные пользователи (бан / разбан)</div>
+    <div class="card-header">Зарегистрированные пользователи (бан / разбан + роль)</div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-sm align-middle">
@@ -219,7 +237,8 @@ require __DIR__ . '/../includes/header.php';
                     <th>Роль</th>
                     <th>Статус</th>
                     <th>Дата</th>
-                    <th></th>
+                    <th>Блокировка</th>
+                    <th>Смена роли</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -250,6 +269,17 @@ require __DIR__ . '/../includes/header.php';
                             <?php else: ?>
                                 <span class="text-muted small">Недоступно</span>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <form method="post" class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="change_user_role" value="1">
+                                <input type="hidden" name="user_id" value="<?= (int)$row['id'] ?>">
+                                <select name="new_role" class="form-select form-select-sm" style="min-width: 120px;">
+                                    <option value="user" <?= $row['role'] === 'user' ? 'selected' : '' ?>>user</option>
+                                    <option value="admin" <?= $row['role'] === 'admin' ? 'selected' : '' ?>>admin</option>
+                                </select>
+                                <button class="btn btn-outline-primary btn-sm">Сменить</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
